@@ -8,10 +8,15 @@ type broadcaster struct {
 	outputs map[chan<- interface{}]bool
 }
 
+// Interface to the broadcaster.
 type Broadcaster interface {
+	// Register a new channel to receive broadcasts
 	Register(chan<- interface{})
+	// Unregister a channel so that it no longer receives broadcasts.
 	Unregister(chan<- interface{})
+	// Shut this broadcaster down.
 	Close() error
+	// Submit a new object to all subscribers
 	Submit(interface{})
 }
 
@@ -38,6 +43,7 @@ func (b *broadcaster) run() {
 	}
 }
 
+// Create a new broadcaster with the given input channel buffer length.
 func NewBroadcaster(buflen int) Broadcaster {
 	b := &broadcaster{
 		input:   make(chan interface{}, buflen),
