@@ -8,6 +8,13 @@ type broadcaster struct {
 	outputs map[chan<- interface{}]bool
 }
 
+type Broadcaster interface {
+	Register(chan<- interface{})
+	Unregister(chan<- interface{})
+	Close() error
+	Submit(interface{})
+}
+
 func (b *broadcaster) broadcast(m interface{}) {
 	for ch := range b.outputs {
 		ch <- m
@@ -31,7 +38,7 @@ func (b *broadcaster) run() {
 	}
 }
 
-func NewBroadcaster(buflen int) *broadcaster {
+func NewBroadcaster(buflen int) Broadcaster {
 	b := &broadcaster{
 		input:   make(chan interface{}, buflen),
 		reg:     make(chan chan<- interface{}),
