@@ -67,23 +67,36 @@ func (b *MuxObserver) doUnreg(tr taggedRegReq) {
 	}
 }
 
+func (b *MuxObserver) handleReg(tr taggedRegReq) {
+	switch tr.regType {
+	case register:
+		b.doReg(tr)
+	case unregister:
+		b.doUnreg(tr)
+	case purge:
+		delete(b.subs, tr.sub)
+	}
+}
+
 func (b *MuxObserver) run() {
 	for {
 		select {
-		case to := <-b.input:
-			b.broadcast(to)
 		case tr, ok := <-b.reg:
 			if ok {
-				switch tr.regType {
-				case register:
-					b.doReg(tr)
-				case unregister:
-					b.doUnreg(tr)
-				case purge:
-					delete(b.subs, tr.sub)
-				}
+				b.handleReg(tr)
 			} else {
 				return
+			}
+		default:
+			select {
+			case to := <-b.input:
+				b.broadcast(to)
+			case tr, ok := <-b.reg:
+				if ok {
+					b.handleReg(tr)
+				} else {
+					return
+				}
 			}
 		}
 	}
