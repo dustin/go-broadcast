@@ -51,3 +51,17 @@ func TestMuxBroadcastCleanup(t *testing.T) {
 	b.Close()
 	mo.Close()
 }
+
+func BenchmarkMuxBrodcast(b *testing.B) {
+	chout := make(chan interface{})
+
+	mo := NewMuxObserver(0, 0)
+	defer mo.Close()
+	bc := mo.Sub()
+	bc.Register(chout)
+
+	for i := 0; i < b.N; i++ {
+		bc.Submit(nil)
+		<-chout
+	}
+}

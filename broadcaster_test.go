@@ -36,3 +36,34 @@ func TestBroadcastCleanup(t *testing.T) {
 	b.Register(make(chan interface{}))
 	b.Close()
 }
+
+func echoer(chin, chout chan interface{}) {
+	for m := range chin {
+		chout <- m
+	}
+}
+
+func BenchmarkDirectSend(b *testing.B) {
+	chout := make(chan interface{})
+	chin := make(chan interface{})
+
+	go echoer(chin, chout)
+
+	for i := 0; i < b.N; i++ {
+		chin <- nil
+		<-chout
+	}
+}
+
+func BenchmarkBrodcast(b *testing.B) {
+	chout := make(chan interface{})
+
+	bc := NewBroadcaster(0)
+	defer bc.Close()
+	bc.Register(chout)
+
+	for i := 0; i < b.N; i++ {
+		bc.Submit(nil)
+		<-chout
+	}
+}
