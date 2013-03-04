@@ -1,3 +1,10 @@
+/*
+Package broadcast provides pubsub of messages over channels.
+
+A provider has a Broadcaster into which it Submits messages and into
+which subscribers Register to pick up those messages.
+
+*/
 package broadcast
 
 type broadcaster struct {
@@ -8,7 +15,8 @@ type broadcaster struct {
 	outputs map[chan<- interface{}]bool
 }
 
-// Interface to the broadcaster.
+// The broadcaster interface describes the main entry points to
+// broadcasters.
 type Broadcaster interface {
 	// Register a new channel to receive broadcasts
 	Register(chan<- interface{})
