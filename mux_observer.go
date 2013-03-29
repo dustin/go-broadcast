@@ -25,7 +25,11 @@ type MuxObserver struct {
 	input chan taggedObservation
 }
 
-// Get a new MuxObserver with the given input queue length.
+// Get a new MuxObserver.
+//
+// qlen is the size of the channel buffer for observations sent into
+// the mux observer and reglen is the size of the channel buffer for
+// registration/unregistration events.
 func NewMuxObserver(qlen, reglen int) *MuxObserver {
 	rv := &MuxObserver{
 		subs:  map[*subObserver]map[chan<- interface{}]bool{},
