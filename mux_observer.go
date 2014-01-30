@@ -25,7 +25,7 @@ type MuxObserver struct {
 	input chan taggedObservation
 }
 
-// Get a new MuxObserver.
+// NewMuxObserver constructs  a new MuxObserver.
 //
 // qlen is the size of the channel buffer for observations sent into
 // the mux observer and reglen is the size of the channel buffer for
@@ -40,64 +40,64 @@ func NewMuxObserver(qlen, reglen int) *MuxObserver {
 	return rv
 }
 
-// Shut down this mux observer.
-func (b *MuxObserver) Close() error {
-	close(b.reg)
+// Close shuts down this mux observer.
+func (m *MuxObserver) Close() error {
+	close(m.reg)
 	return nil
 }
 
-func (b *MuxObserver) broadcast(to taggedObservation) {
-	for ch := range b.subs[to.sub] {
+func (m *MuxObserver) broadcast(to taggedObservation) {
+	for ch := range m.subs[to.sub] {
 		ch <- to.ob
 	}
 }
 
-func (b *MuxObserver) doReg(tr taggedRegReq) {
-	m, exists := b.subs[tr.sub]
+func (m *MuxObserver) doReg(tr taggedRegReq) {
+	mm, exists := m.subs[tr.sub]
 	if !exists {
-		m = map[chan<- interface{}]bool{}
-		b.subs[tr.sub] = m
+		mm = map[chan<- interface{}]bool{}
+		m.subs[tr.sub] = mm
 	}
-	m[tr.ch] = true
+	mm[tr.ch] = true
 }
 
-func (b *MuxObserver) doUnreg(tr taggedRegReq) {
-	m, exists := b.subs[tr.sub]
+func (m *MuxObserver) doUnreg(tr taggedRegReq) {
+	mm, exists := m.subs[tr.sub]
 	if exists {
-		delete(m, tr.ch)
-		if len(m) == 0 {
-			delete(b.subs, tr.sub)
+		delete(mm, tr.ch)
+		if len(mm) == 0 {
+			delete(m.subs, tr.sub)
 		}
 	}
 }
 
-func (b *MuxObserver) handleReg(tr taggedRegReq) {
+func (m *MuxObserver) handleReg(tr taggedRegReq) {
 	switch tr.regType {
 	case register:
-		b.doReg(tr)
+		m.doReg(tr)
 	case unregister:
-		b.doUnreg(tr)
+		m.doUnreg(tr)
 	case purge:
-		delete(b.subs, tr.sub)
+		delete(m.subs, tr.sub)
 	}
 }
 
-func (b *MuxObserver) run() {
+func (m *MuxObserver) run() {
 	for {
 		select {
-		case tr, ok := <-b.reg:
+		case tr, ok := <-m.reg:
 			if ok {
-				b.handleReg(tr)
+				m.handleReg(tr)
 			} else {
 				return
 			}
 		default:
 			select {
-			case to := <-b.input:
-				b.broadcast(to)
-			case tr, ok := <-b.reg:
+			case to := <-m.input:
+				m.broadcast(to)
+			case tr, ok := <-m.reg:
 				if ok {
-					b.handleReg(tr)
+					m.handleReg(tr)
 				} else {
 					return
 				}
@@ -106,7 +106,7 @@ func (b *MuxObserver) run() {
 	}
 }
 
-// Create a new sub-broadcaster from this MuxObserver.
+// Sub creates a new sub-broadcaster from this MuxObserver.
 func (m *MuxObserver) Sub() Broadcaster {
 	return &subObserver{m}
 }

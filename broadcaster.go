@@ -15,7 +15,7 @@ type broadcaster struct {
 	outputs map[chan<- interface{}]bool
 }
 
-// The broadcaster interface describes the main entry points to
+// The Broadcaster interface describes the main entry points to
 // broadcasters.
 type Broadcaster interface {
 	// Register a new channel to receive broadcasts
@@ -51,7 +51,8 @@ func (b *broadcaster) run() {
 	}
 }
 
-// Create a new broadcaster with the given input channel buffer length.
+// NewBroadcaster creates a new broadcaster with the given input
+// channel buffer length.
 func NewBroadcaster(buflen int) Broadcaster {
 	b := &broadcaster{
 		input:   make(chan interface{}, buflen),
