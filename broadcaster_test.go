@@ -46,6 +46,7 @@ func echoer(chin, chout chan interface{}) {
 func BenchmarkDirectSend(b *testing.B) {
 	chout := make(chan interface{})
 	chin := make(chan interface{})
+	defer close(chin)
 
 	go echoer(chin, chout)
 
@@ -66,4 +67,34 @@ func BenchmarkBrodcast(b *testing.B) {
 		bc.Submit(nil)
 		<-chout
 	}
+}
+
+func BenchmarkParallelDirectSend(b *testing.B) {
+	chout := make(chan interface{})
+	chin := make(chan interface{})
+	defer close(chin)
+
+	go echoer(chin, chout)
+
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			chin <- nil
+			<-chout
+		}
+	})
+}
+
+func BenchmarkParallelBrodcast(b *testing.B) {
+	chout := make(chan interface{})
+
+	bc := NewBroadcaster(0)
+	defer bc.Close()
+	bc.Register(chout)
+
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			bc.Submit(nil)
+			<-chout
+		}
+	})
 }
