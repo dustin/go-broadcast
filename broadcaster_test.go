@@ -31,6 +31,28 @@ func TestBroadcast(t *testing.T) {
 	wg.Wait()
 }
 
+func TestBroadcastTrySubmit(t *testing.T) {
+	b := NewBroadcaster(1)
+	defer b.Close()
+
+	if ok := b.TrySubmit(0); !ok {
+		t.Fatalf("1st TrySubmit assert error expect=true actual=%v", ok)
+	}
+
+	if ok := b.TrySubmit(1); ok {
+		t.Fatalf("2nd TrySubmit assert error expect=false actual=%v", ok)
+	}
+
+	cch := make(chan interface{})
+	b.Register(cch)
+	defer b.Unregister(cch)
+	<-cch
+
+	if ok := b.TrySubmit(1); !ok {
+		t.Fatalf("3rd TrySubmit assert error expect=true actual=%v", ok)
+	}
+}
+
 func TestBroadcastCleanup(t *testing.T) {
 	b := NewBroadcaster(100)
 	b.Register(make(chan interface{}))

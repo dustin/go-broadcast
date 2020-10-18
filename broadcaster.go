@@ -26,6 +26,8 @@ type Broadcaster interface {
 	Close() error
 	// Submit a new object to all subscribers
 	Submit(interface{})
+	// Try Submit a new object to all subscribers return false if input chan is fill
+	TrySubmit(interface{}) bool
 }
 
 func (b *broadcaster) broadcast(m interface{}) {
@@ -83,4 +85,16 @@ func (b *broadcaster) Submit(m interface{}) {
 	if b != nil {
 		b.input <- m
 	}
+}
+
+func (b *broadcaster) TrySubmit(m interface{}) bool {
+	if b != nil {
+		select {
+		case b.input <- m:
+			return true
+		default:
+			return false
+		}
+	}
+	return false
 }
