@@ -131,3 +131,15 @@ func (s *subObserver) Close() error {
 func (s *subObserver) Submit(ob interface{}) {
 	s.mo.input <- taggedObservation{s, ob}
 }
+
+func (s *subObserver) TrySubmit(ob interface{}) bool {
+	if s == nil {
+		return false
+	}
+	select {
+	case s.mo.input <- taggedObservation{s, ob}:
+		return true
+	default:
+		return false
+	}
+}
