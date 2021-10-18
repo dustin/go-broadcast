@@ -78,6 +78,7 @@ func (b *broadcaster) Unregister(newch chan<- interface{}) {
 
 func (b *broadcaster) Close() error {
 	close(b.reg)
+	close(b.unreg)
 	return nil
 }
 
@@ -91,13 +92,13 @@ func (b *broadcaster) Submit(m interface{}) {
 // TrySubmit attempts to submit an item to be broadcast, returning
 // true iff it the item was broadcast, else false.
 func (b *broadcaster) TrySubmit(m interface{}) bool {
-	if b != nil {
-		select {
-		case b.input <- m:
-			return true
-		default:
-			return false
-		}
+	if b == nil {
+		return false
 	}
-	return false
+	select {
+	case b.input <- m:
+		return true
+	default:
+		return false
+	}
 }

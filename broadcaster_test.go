@@ -45,8 +45,6 @@ func TestBroadcastTrySubmit(t *testing.T) {
 
 	cch := make(chan interface{})
 	b.Register(cch)
-	defer b.Unregister(cch)
-	<-cch
 
 	if ok := b.TrySubmit(1); !ok {
 		t.Fatalf("3rd TrySubmit assert error expect=true actual=%v", ok)
