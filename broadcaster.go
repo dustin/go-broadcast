@@ -81,12 +81,15 @@ func (b *broadcaster) Close() error {
 	return nil
 }
 
+// Submit an item to be broadcast to all listeners.
 func (b *broadcaster) Submit(m interface{}) {
 	if b != nil {
 		b.input <- m
 	}
 }
 
+// TrySubmit attempts to submit an item to be broadcast, returning
+// true iff it the item was broadcast, else false.
 func (b *broadcaster) TrySubmit(m interface{}) bool {
 	if b != nil {
 		select {
