@@ -26,7 +26,7 @@ type Broadcaster interface {
 	Close() error
 	// Submit a new object to all subscribers
 	Submit(interface{})
-	// Try Submit a new object to all subscribers return false if input chan is fill
+	// Try Submit a new object to all subscribers return false if input chan is full
 	TrySubmit(interface{}) bool
 }
 
